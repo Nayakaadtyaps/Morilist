@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_todo"
+        android:icon="@drawable/baseline_home_filled_24"
+        android:title="To-Do" />
+    <item
+        android:id="@+id/nav_productivity"
+        android:icon="@drawable/baseline_flag_circle_24"
+        android:title="Productivity" />
+    <item
+        android:id="@+id/nav_account"
+        android:icon="@drawable/baseline_account_circle_24"
+        android:title="Account" />
+</menu>

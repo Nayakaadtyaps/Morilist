@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "484295100856",
+    "project_id": "morilist2",
+    "storage_bucket": "morilist2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484295100856:android:013ace84d318c73ac3a74d",
+        "android_client_info": {
+          "package_name": "com.moriboot.morilist"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484295100856-v30iai1tr9h6k6rub158r5fbemnvt0mr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.moriboot.morilist",
+            "certificate_hash": "e95ed875190c324900f2527a5121833605540f46"
+          }
+        },
+        {
+          "client_id": "484295100856-pvtd68efo8i1n9kfldb7qfd9ccr5srkl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6GlMT9xvuMGsImu3NKEm8XAHu0QUvL_k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484295100856-pvtd68efo8i1n9kfldb7qfd9ccr5srkl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:onClick="onBackPressed"
+            android:src="@drawable/baseline_arrow_back_24"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+    </LinearLayout>
+
+    <!-- Task Title -->
+    <Spinner
+        android:id="@+id/btnPriority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/priority_levels"
+        android:minHeight="48dp" />
+    <EditText
+        android:id="@+id/etTask"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Masukkan tugas utama"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Subtask Container -->
+    <LinearLayout
+        android:id="@+id/subtask_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/subtasksRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical" />
+
+    <EditText
+        android:id="@+id/etSubtask"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tambahkan subtask"
+        android:minHeight="48dp" />
+
+
+    <!-- Add Subtask Button -->
+    <Button
+        android:id="@+id/btn_add_subtask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Tambah tugas sampingan"
+        android:textColor="@color/blue"
+        android:background="@android:color/transparent"
+        android:layout_marginTop="8dp"/>
+    <Button
+        android:id="@+id/btn_deadline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Tambah deadline"
+        android:textColor="@color/blue"
+        android:background="@android:color/transparent"
+        android:layout_marginTop="8dp"/>
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reminder"
+        android:textStyle="bold"/>
+
+    <Spinner
+        android:id="@+id/reminderSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:prompt="@string/prompt_reminder" />
+    <Button
+        android:id="@+id/btn_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/blue"
+        android:text="Add" />
+
+
+</LinearLayout>

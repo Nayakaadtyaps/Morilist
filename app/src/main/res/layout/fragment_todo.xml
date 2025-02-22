@@ -1,0 +1,115 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context=".fragments.TodoFragment">
+
+<!-- <TextView-->
+<!--     android:layout_width="match_parent"-->
+<!--     android:layout_height="wrap_content"-->
+<!--     android:text="Halo tuan muda!"-->
+<!--     android:textSize="30sp"-->
+<!--     android:textStyle="bold"-->
+<!--     android:layout_marginVertical="5dp"-->
+<!--     android:layout_marginHorizontal="10sp"-->
+<!--     />-->
+
+
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+
+
+
+<!--    <ProgressBar-->
+<!--        android:id="@+id/healthBar"-->
+<!--        style="?android:attr/progressBarStyleHorizontal"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="20dp"-->
+<!--        android:layout_marginStart="20dp"-->
+<!--        android:progress="100"-->
+<!--        android:max="100"-->
+<!--        android:progressDrawable="@drawable/health_bar" />-->
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_marginTop="50dp"
+            android:layout_height="match_parent">
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/todoRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="25dp"
+            android:padding="8dp"
+            tools:listitem="@layout/item_todo" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/addTodoFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:contentDescription="Add Todo"
+            android:src="@drawable/baseline_add_circle_24"
+            android:tint="@android:color/white" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnblmselesai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="belum selesai"
+                android:layout_marginHorizontal="10dp"
+                android:shadowColor="@color/blue"/>
+            <Button
+                android:id="@+id/btnselesai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="selesai"
+                android:layout_marginHorizontal="10dp"
+                android:shadowColor="@color/blue"/>
+            <Button
+                android:id="@+id/btnterlambat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="terlambat"
+                android:layout_marginHorizontal="10dp"
+                android:shadowColor="@color/blue"/>
+
+        </LinearLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</LinearLayout>
