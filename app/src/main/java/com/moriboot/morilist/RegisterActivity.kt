@@ -32,12 +32,12 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
-        // Initialize FirebaseAuth and Firestore
+
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Get references to UI elements
-        val etFullName: EditText = findViewById(R.id.etFullName)
+
+//        val etFullName: EditText = findViewById(R.id.etFullName)
         val etEmail: EditText = findViewById(R.id.etEmail)
         val etPasswordSignUp: EditText = findViewById(R.id.etPasswordSignUp)
         val etConfirmPassword: EditText = findViewById(R.id.etConfirmPassword)
@@ -46,7 +46,7 @@ class RegisterActivity : AppCompatActivity() {
         val ivTogglePassword: ImageView = findViewById(R.id.ivTogglePassword)
         val ivToggleConfirmPassword: ImageView = findViewById(R.id.ivToggleConfirmPassword)
 
-        // Toggle password visibility
+
         ivTogglePassword.setOnClickListener {
             isPasswordVisible = !isPasswordVisible
             if (isPasswordVisible) {
@@ -59,7 +59,7 @@ class RegisterActivity : AppCompatActivity() {
             etPasswordSignUp.setSelection(etPasswordSignUp.text.length) // Set cursor position
         }
 
-        // Toggle confirm password visibility
+
         ivToggleConfirmPassword.setOnClickListener {
             isConfirmPasswordVisible = !isConfirmPasswordVisible
             if (isConfirmPasswordVisible) {
@@ -72,40 +72,39 @@ class RegisterActivity : AppCompatActivity() {
             etConfirmPassword.setSelection(etConfirmPassword.text.length) // Set cursor position
         }
 
-        // Handle "Sign Up" button click
+
         btnSignUp.setOnClickListener {
-            val fullName = etFullName.text.toString().trim()
+//            val fullName = etFullName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val password = etPasswordSignUp.text.toString().trim()
             val confirmPassword = etConfirmPassword.text.toString().trim()
 
-            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
+            if ( email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(this, "Isi semua tuan muda", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password != confirmPassword) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Password gak sesuai tuan muda", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password.length < 6) {
-                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Password harus lebih dari akar 36", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Create user with Firebase Authentication
+
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        // Sign up success
+
                         val userId = auth.currentUser?.uid
 
-                        // Create user data with level default
+
                         val userData = hashMapOf(
-                            "fullName" to fullName,
                             "email" to email,
-                            "level" to "Beginner" // Default level
+                            "level" to "Beginner"
                         )
 
                         if (userId != null) {
@@ -119,7 +118,7 @@ class RegisterActivity : AppCompatActivity() {
                                     finish()
                                 }
                                 .addOnFailureListener { e ->
-                                    Toast.makeText(this, "Failed to save user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this, "Failed to save user data: ", Toast.LENGTH_SHORT).show()
                                 }
                         }
                     } else {
@@ -130,26 +129,23 @@ class RegisterActivity : AppCompatActivity() {
                 }
         }
 
-        // Create a SpannableString for "Already Have An Account? Sign In"
         val text = "Already Have An Account? Sign In"
         val spannableString = SpannableString(text)
 
-        // Define the clickable action for "Sign In"
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
-                // Redirect to LoginActivity
                 val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
                 startActivity(intent)
             }
         }
 
-        // Apply styles to "Sign In"
+
         val startIndex = text.indexOf("Sign In")
         val endIndex = startIndex + "Sign In".length
         spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         spannableString.setSpan(ForegroundColorSpan(Color.BLUE), startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-        // Set the SpannableString to the TextView
+
         tvRedirectToSignIn.text = spannableString
         tvRedirectToSignIn.movementMethod = LinkMovementMethod.getInstance()
     }

@@ -1,4 +1,4 @@
-package com.moriboot.morilist
+package com.moriboot.morilist.models
 
 import java.util.Date
 
@@ -6,7 +6,7 @@ import java.util.Date
 data class Todo(
     var id: String = "",
     val title: String = "",
-    var subtasks: List<Subtask> = emptyList(),
+    var subtasks: List<Subtask> = mutableListOf(),
     var priorityLevel: String = "",
     var completed: Boolean = false,
     val timestamp: Date = Date(),

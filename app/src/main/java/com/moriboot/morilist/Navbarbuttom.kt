@@ -51,8 +51,8 @@ class Navbarbuttom : AppCompatActivity() {
     // Fungsi untuk menampilkan AlertDialog
     private fun showAlertDialog() {
         val alertDialogBuilder = AlertDialog.Builder(this)
-            .setTitle("Title")
-            .setMessage("This is an alert message")
+            .setTitle("Selamat datang")
+            .setMessage("atur jadwal padatmu tuan!")
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             .create()
 

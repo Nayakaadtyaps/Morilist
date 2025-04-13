@@ -1,6 +1,5 @@
 package com.moriboot.morilist
 
-
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -13,157 +12,128 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var googleSignInClient: GoogleSignInClient
-    private val RC_SIGN_IN = 100
+//    private lateinit var googleSignInClient: GoogleSignInClient
+//    private val RC_SIGN_IN = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Initialize FirebaseAuth
+
         auth = FirebaseAuth.getInstance()
 
-        // Configure Google Sign-In
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.gcm_defaultSenderId))
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // References to UI elements
+//        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//            .requestIdToken(getString(R.string.gcm_defaultSenderId))
+//            .requestEmail()
+//            .build()
+//        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
         val etUsername: EditText = findViewById(R.id.etUsername)
         val etPassword: EditText = findViewById(R.id.etPassword)
         val btnSignIn: Button = findViewById(R.id.btnSignIn)
         val tvSignUp: TextView = findViewById(R.id.tvSignUp)
-        val btnGoogleSignIn: ImageButton = findViewById(R.id.btnGoogleSignIn)
 
-        // Handle sign-in button click
         btnSignIn.setOnClickListener {
             val email = etUsername.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Isi semua tuan muda", Toast.LENGTH_SHORT).show()
+            // Validasi input kosong
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Isi email tuan muda", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (password.isEmpty()) {
+                Toast.makeText(this, "Isi password tuan muda", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
 
-            // Login with Firebase
+            // Login dengan Firebase
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val user = auth.currentUser
                         if (user != null) {
-                            // Simpan data user ke Firestore
-                            saveUserData(user.displayName ?: "User", user.email ?: "No Email", "surfing")
+                            // Simpan status login dan data user
+                            saveLoginState(user.uid)
+                            saveUserData(
+                                user.displayName ?: "User",
+                                user.email ?: "No Email",
+                                "surfing"
+                            )
+                            Toast.makeText(this, "Asik bisaa", Toast.LENGTH_SHORT).show()
+
+                            // Pindah ke MainActivity
+                            val intent = Intent(this, Navbarbuttom::class.java)
+                            startActivity(intent)
+                            finish()
                         }
-
-                        Toast.makeText(this, "Asik bisaa", Toast.LENGTH_SHORT).show()
-
-                        // Redirect to MainActivity
-                        val intent = Intent(this, Navbarbuttom::class.java)
-                        startActivity(intent)
-                        finish()
                     } else {
-                        val errorMessage = task.exception?.message ?: "Ada yang salah bos"
+                        // Penanganan error lebih spesifik
+                        val errorMessage = when (task.exception?.message) {
+                            "The password is invalid or the user does not have a password." -> "Password salah tuan muda"
+                            "There is no user record corresponding to this identifier. The user may have been deleted." -> "Email tidak ditemukan tuan muda"
+                            "The email address is badly formatted." -> "Format email salah tuan muda"
+                            else -> "Login gagal:  Ada yang salah bos"
+                        }
                         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                     }
                 }
         }
 
-        // Handle Google Sign-In button click
-        btnGoogleSignIn.setOnClickListener {
-            signInWithGoogle()
-        }
-
         // Buat SpannableString untuk teks hyperlink
         val spannableText = SpannableString("Don't Have An Account? Sign Up")
-
-        // Tambahkan ClickableSpan pada teks "Sign Up"
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
-                // Navigasi ke SignUpActivity
                 val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
                 startActivity(intent)
             }
         }
         spannableText.setSpan(clickableSpan, 23, spannableText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        // Tambahkan warna biru pada teks "Sign Up"
-        val colorSpan = ForegroundColorSpan(Color.BLUE)
-        spannableText.setSpan(colorSpan, 23, spannableText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        // Pasang teks ke TextView dan buat teksnya bisa diklik
+        spannableText.setSpan(ForegroundColorSpan(Color.BLUE), 23, spannableText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         tvSignUp.text = spannableText
         tvSignUp.movementMethod = LinkMovementMethod.getInstance()
-        tvSignUp.highlightColor = Color.TRANSPARENT // Hilangkan efek highlight saat diklik
+        tvSignUp.highlightColor = Color.TRANSPARENT
     }
+
     override fun onStart() {
         super.onStart()
-        val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val savedUserId = sharedPref.getString("USER_ID", null)
-
-        if (savedUserId != null && FirebaseAuth.getInstance().currentUser != null) {
+        // Cek apakah pengguna sudah login
+        if (isUserLoggedIn()) {
             val intent = Intent(this, Navbarbuttom::class.java)
             startActivity(intent)
             finish()
         }
     }
 
-    private fun signInWithGoogle() {
-        val signInIntent = googleSignInClient.signInIntent
-        this.startActivityForResult(signInIntent, RC_SIGN_IN)
+    private fun saveLoginState(userId: String) {
+        val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("USER_ID", userId)
+            putBoolean("IS_LOGGED_IN", true)
+            apply()
+        }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == RC_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            if (task.isSuccessful) {
-                val account = task.result
-                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-                auth.signInWithCredential(credential)
-                    .addOnCompleteListener { authTask ->
-                        if (authTask.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null) {
-                                // Simpan data user ke Firestore
-                                saveUserData(user.displayName ?: "Google User", user.email ?: "No Email", "free")
-                            }
-
-                            Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                            val intent = Intent(this, RegisterActivity ::class.java)
-                            startActivity(intent)
-                            finish()
-                        } else {
-                            Toast.makeText(this, "Login Failed: ${authTask.exception?.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            } else {
-                Toast.makeText(this, "Google Sign-In Failed", Toast.LENGTH_SHORT).show()
-            }
-
-        }
+    private fun isUserLoggedIn(): Boolean {
+        val sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPref.getBoolean("IS_LOGGED_IN", false)
+        val userId = sharedPref.getString("USER_ID", null)
+        return isLoggedIn && userId != null && auth.currentUser != null
     }
 
     private fun saveUserData(username: String, email: String, level: String) {
         val db = FirebaseFirestore.getInstance()
-
         val userData = hashMapOf(
             "username" to username,
             "email" to email,

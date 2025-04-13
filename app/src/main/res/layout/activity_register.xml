@@ -2,7 +2,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#121212"
     android:orientation="vertical"
     tools:context=".RegisterActivity"
     android:padding="16dp">
@@ -13,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Create Your Account"
-        android:textColor="#FFFFFF"
         android:textSize="28sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -31,15 +29,15 @@
         android:layout_marginTop="8dp" />
 
     <!-- Full Name Input -->
-    <EditText
-        android:id="@+id/etFullName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Full Name"
-        android:padding="16dp"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#B3B3B3"
-        android:layout_marginTop="24dp" />
+<!--    <EditText-->
+<!--        android:id="@+id/etFullName"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:hint="Full Name"-->
+<!--        android:padding="16dp"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:textColorHint="#B3B3B3"-->
+<!--        android:layout_marginTop="24dp" />-->
 
     <!-- Email Input -->
     <EditText
@@ -48,7 +46,6 @@
         android:layout_height="wrap_content"
         android:hint="Email"
         android:padding="16dp"
-        android:textColor="#FFFFFF"
         android:textColorHint="#B3B3B3"
         android:inputType="textEmailAddress"
         android:layout_marginTop="16dp" />
@@ -67,7 +64,6 @@
             android:layout_weight="1"
             android:hint="Password"
             android:padding="16dp"
-            android:textColor="#FFFFFF"
             android:textColorHint="#B3B3B3"
             android:inputType="textPassword" />
 
@@ -76,7 +72,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="8dp"
-            android:src="@drawable/baseline_vpn_key_24"
+            android:src="@drawable/baseline_vpn_key_241"
             android:contentDescription="Toggle Password Visibility" />
     </LinearLayout>
 
@@ -94,7 +90,6 @@
             android:layout_weight="1"
             android:hint="Confirm Password"
             android:padding="16dp"
-            android:textColor="#FFFFFF"
             android:textColorHint="#B3B3B3"
             android:inputType="textPassword" />
 
@@ -103,7 +98,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="8dp"
-            android:src="@drawable/baseline_vpn_key_24"
+            android:src="@drawable/baseline_vpn_key_241"
             android:contentDescription="Toggle Confirm Password Visibility" />
     </LinearLayout>
 
@@ -124,7 +119,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Already Have An Account? Sign In"
-        android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="24dp" />

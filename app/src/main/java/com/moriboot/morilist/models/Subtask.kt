@@ -1,4 +1,4 @@
-package com.moriboot.morilist
+package com.moriboot.morilist.models
 
 data class Subtask(
     var id: String = "",

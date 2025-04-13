@@ -50,15 +50,15 @@
         android:layout_marginTop="16dp" />
 
     <!-- Forgot Password -->
-    <TextView
-        android:id="@+id/tvForgotPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Forgot Password?"
-        android:textColor="#B3B3B3"
-        android:textSize="14sp"
-        android:gravity="end"
-        android:layout_marginTop="8dp" />
+<!--    <TextView-->
+<!--        android:id="@+id/tvForgotPassword"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Forgot Password?"-->
+<!--        android:textColor="#B3B3B3"-->
+<!--        android:textSize="14sp"-->
+<!--        android:gravity="end"-->
+<!--        android:layout_marginTop="8dp" />-->
 
     <!-- Sign In Button -->
 
@@ -82,26 +82,26 @@
         android:layout_marginTop="16dp">
 
         <!-- Google Button -->
-        <ImageButton
-            android:id="@+id/btnGoogleSignIn"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/circle_button_google"
-            android:src="@drawable/ic_google"
-            android:contentDescription="Login with Google"
-            android:scaleType="centerInside"
-            android:layout_marginEnd="8dp" />
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnGoogleSignIn"-->
+<!--            android:layout_width="56dp"-->
+<!--            android:layout_height="56dp"-->
+<!--            android:background="@drawable/circle_button_google"-->
+<!--            android:src="@drawable/ic_google"-->
+<!--            android:contentDescription="Login with Google"-->
+<!--            android:scaleType="centerInside"-->
+<!--            android:layout_marginEnd="8dp" />-->
 
-        <!-- Facebook Button -->
-        <ImageButton
-            android:id="@+id/btnFacebookSignIn"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:background="@drawable/circle_button_facebook"
-            android:src="@drawable/communication"
-            android:contentDescription="Login with Facebook"
-            android:scaleType="centerInside"
-            android:layout_marginStart="8dp" />
+<!--        &lt;!&ndash; Facebook Button &ndash;&gt;-->
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnFacebookSignIn"-->
+<!--            android:layout_width="72dp"-->
+<!--            android:layout_height="72dp"-->
+<!--            android:background="@drawable/circle_button_facebook"-->
+<!--            android:src="@drawable/communication"-->
+<!--            android:contentDescription="Login with Facebook"-->
+<!--            android:scaleType="centerInside"-->
+<!--            android:layout_marginStart="8dp" />-->
     </LinearLayout>
 
 
