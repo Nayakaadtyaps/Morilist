@@ -1,6 +1,7 @@
 package com.moriboot.morilist.fragments
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -34,21 +35,29 @@ class AccountFragment : Fragment() {
     }
 
     private fun logoutUser() {
-        val auth = FirebaseAuth.getInstance()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Logout")
+            .setMessage("Yakin ingin logout? yang datang dan pergi..")
+            .setPositiveButton("Logout") { _, _ ->
+                val auth = FirebaseAuth.getInstance()
 
-        // Logout dari Firebase
-        auth.signOut()
+                // Logout dari Firebase
+                auth.signOut()
 
-        // Hapus sesi pengguna dari SharedPreferences
-        val sharedPref = requireActivity().getSharedPreferences("AppPrefs", android.content.Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            remove("USER_ID") // Hapus ID pengguna yang tersimpan
-            apply()
-        }
+                // Hapus sesi pengguna dari SharedPreferences
+                val sharedPref = requireActivity().getSharedPreferences("AppPrefs", android.content.Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    remove("USER_ID")
+                    apply()
+                }
 
-        // Tutup semua aktivitas dan arahkan ke login
-        val intent = Intent(requireContext(), LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
+                // Tutup semua aktivitas dan arahkan ke login
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
+
 }

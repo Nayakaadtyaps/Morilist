@@ -57,10 +57,17 @@ class TodoAdapter(
 
         holder.title.text = todo.title
         holder.priority.text = "${todo.priorityLevel}"
-        holder.timestamp.text = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
-            .format(todo.timestamp ?: Date())
+        holder.timestamp.text =
+            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
+                .format(todo.timestamp ?: Date())
         holder.deadline.text = todo.deadline?.let {
-            "💣 Deadline: ${DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault()).format(it)}"
+            "💣 Deadline: ${
+                DateFormat.getDateTimeInstance(
+                    DateFormat.MEDIUM,
+                    DateFormat.SHORT,
+                    Locale.getDefault()
+                ).format(it)
+            }"
         } ?: "No deadline"
 
         holder.checkBox.setOnCheckedChangeListener(null)
@@ -91,10 +98,18 @@ class TodoAdapter(
             if (holder.checkBox.isEnabled) {
                 todo.completed = isChecked
                 updateTodoStatus(todo)
-                if (isChecked && !holder.wasCompleted && !awardedPoints.getOrDefault(todo.id, false)) {
+                if (isChecked && !holder.wasCompleted && !awardedPoints.getOrDefault(
+                        todo.id,
+                        false
+                    )
+                ) {
                     val pointsToAdd = if (isPastDeadline) 5 else 10
                     addProductivityPoint(todo.userId, pointsToAdd)
-                    Toast.makeText(holder.itemView.context, "+$pointsToAdd points!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        holder.itemView.context,
+                        "+$pointsToAdd points!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     awardedPoints[todo.id] = true // Tandai poin sudah diberikan
                 }
                 holder.wasCompleted = isChecked // Update status setelah perubahan
@@ -110,6 +125,7 @@ class TodoAdapter(
             onDeleteClick(todo)
         }
     }
+
 
     override fun getItemCount() = todos.size
 
@@ -153,7 +169,8 @@ class TodoAdapter(
                     return@addSnapshotListener
                 }
                 if (snapshots != null) {
-                    val updatedSubtasks = snapshots.map { it.toObject(Subtask::class.java) }.toMutableList()
+                    val updatedSubtasks =
+                        snapshots.map { it.toObject(Subtask::class.java) }.toMutableList()
                     Log.d("TodoAdapter", "Subtasks diperbarui: ${updatedSubtasks.size}")
                     subtaskAdapter.updateList(updatedSubtasks)
                 } else {
@@ -166,7 +183,8 @@ class TodoAdapter(
         db.collection("todos").document(todoId).collection("subtasks")
             .get()
             .addOnSuccessListener { snapshot ->
-                val allCompleted = snapshot.documents.all { it.toObject(Subtask::class.java)?.completed == true }
+                val allCompleted =
+                    snapshot.documents.all { it.toObject(Subtask::class.java)?.completed == true }
                 callback(allCompleted)
             }
             .addOnFailureListener { e ->
@@ -176,18 +194,22 @@ class TodoAdapter(
     }
 
     fun updateList(newList: List<Todo>) {
-        // Perbarui awardedPoints berdasarkan status completed
+        // Tandai task completed agar tidak dapat poin lagi
         newList.forEach { todo ->
             if (todo.completed) {
-                awardedPoints[todo.id] = true // Anggap task yang sudah completed tidak beri poin lagi
+                awardedPoints[todo.id] = true
             }
         }
-        // Bersihkan awardedPoints untuk task yang sudah tidak ada
+
+        // Bersihkan data yang sudah tidak ada
         val newIds = newList.map { it.id }.toSet()
         awardedPoints.keys.retainAll { it in newIds }
+
+        // Update isi list
         todos.clear()
         todos.addAll(newList)
         notifyDataSetChanged()
+
         Log.d("TodoAdapter", "Daftar todos diperbarui, ukuran: ${todos.size}")
     }
 }

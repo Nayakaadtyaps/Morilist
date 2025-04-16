@@ -60,20 +60,29 @@ class TodoFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private var listenerRegistration: ListenerRegistration? = null
+    private val originalTodos = mutableListOf<Todo>() // semua data asli
+    private val displayedTodos = mutableListOf<Todo>() // yang ditampilkan (filtered)
     private var showCompleted = false
-    private var showLate = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_todo, container, false)
+
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
         swipeRefreshLayout.setOnRefreshListener { fetchTodos(getCurrentUserId()) }
         swipeRefreshLayout.setColorSchemeResources(R.color.blue)
 
         todoRecyclerView = view.findViewById(R.id.todoRecyclerView)
         addTodoButton = view.findViewById(R.id.addTodoFab)
+
+        val toggleCompletedButton = view.findViewById<Button>(R.id.toggleCompletedButton)
+        toggleCompletedButton.setOnClickListener {
+            showCompleted = !showCompleted
+            updateTodoList()
+            toggleCompletedButton.text = if (showCompleted) "Sembunyikan yang Selesai" else "Tampilkan yang Selesai"
+        }
 
         setupRecyclerView()
         setupAddButton()
@@ -90,13 +99,30 @@ class TodoFragment : Fragment() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
             }
         }
 
         return view
     }
+
+    private fun updateTodoList() {
+        displayedTodos.clear()
+
+        val filteredList = if (showCompleted) {
+            originalTodos.filter { it.completed }
+        } else {
+            originalTodos.filter { !it.completed }
+        }
+
+        displayedTodos.addAll(filteredList)
+        adapter.updateList(displayedTodos)
+    }
+
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -235,46 +261,80 @@ class TodoFragment : Fragment() {
                 }
 
                 if (snapshot != null) {
-                    todos.clear()
+                    val tempTodos = mutableListOf<Todo>()
+                    var countLoaded = 0
+
+                    if (snapshot.isEmpty) {
+                        todos.clear()
+                        originalTodos.clear()
+                        displayedTodos.clear()
+                        adapter.updateList(displayedTodos)
+                        swipeRefreshLayout.isRefreshing = false
+                        return@addSnapshotListener
+                    }
+
                     for (document in snapshot) {
                         val todo = document.toObject(Todo::class.java).copy(id = document.id)
                         db.collection("todos").document(todo.id).collection("subtasks")
                             .get()
                             .addOnSuccessListener { subtaskSnapshot ->
-                                if (isAdded) {
-                                    val subtasks = subtaskSnapshot.map { subtaskDoc ->
-                                        subtaskDoc.toObject(Subtask::class.java).copy(id = subtaskDoc.id)
-                                    }.toMutableList()
-                                    todo.subtasks = subtasks
-                                    val index = todos.indexOfFirst { it.id == todo.id }
-                                    if (index != -1) {
-                                        todos[index] = todo
-                                        adapter.notifyItemChanged(index)
-                                    }
-                                    Log.d("TodoFragment", "Subtasks untuk ${todo.title}: ${subtasks.size}")
+                                val subtasks = subtaskSnapshot.map { subtaskDoc ->
+                                    subtaskDoc.toObject(Subtask::class.java).copy(id = subtaskDoc.id)
+                                }.toMutableList()
+                                todo.subtasks = subtasks
+                                tempTodos.add(todo)
+                                countLoaded++
+
+                                if (countLoaded == snapshot.size()) {
+                                    todos.clear()
+                                    todos.addAll(tempTodos.sortedByDescending { it.timestamp })
+
+                                    // Ini bagian penting: update originalTodos dan update tampilan
+                                    originalTodos.clear()
+                                    originalTodos.addAll(todos)
+                                    updateTodoList()
+
+                                    swipeRefreshLayout.isRefreshing = false
                                 }
                             }
                             .addOnFailureListener { ex ->
                                 Log.e("TodoFragment", "Gagal mengambil subtasks: ${ex.message}")
+                                countLoaded++
+                                if (countLoaded == snapshot.size()) {
+                                    todos.clear()
+                                    todos.addAll(tempTodos.sortedByDescending { it.timestamp })
+
+                                    originalTodos.clear()
+                                    originalTodos.addAll(todos)
+                                    updateTodoList()
+
+                                    swipeRefreshLayout.isRefreshing = false
+                                }
                             }
-                        todos.add(todo)
                     }
-                    adapter.notifyDataSetChanged()
-                    swipeRefreshLayout.isRefreshing = false
                 }
             }
     }
 
+
+
     private fun deleteTodoFromDatabase(todoId: String) {
-        db.collection("todos").document(todoId).delete()
-            .addOnSuccessListener {
-                showToast("Todo berhasil dihapus!")
-                fetchTodos(auth.currentUser?.uid)
+        AlertDialog.Builder(requireContext())
+            .setTitle("Konfirmasi Penghapusan")
+            .setMessage("Yakin ingin menghapus todo ini? Aksi ini tidak bisa dibatalkan.")
+            .setPositiveButton("Hapus") { _, _ ->
+                db.collection("todos").document(todoId).delete()
+                    .addOnSuccessListener {
+                        showToast("Todo berhasil dihapus!")
+                        fetchTodos(auth.currentUser?.uid)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("TodoFragment", "Gagal menghapus todo: ${e.message}")
+                        showToast("Gagal menghapus todo: ${e.message}")
+                    }
             }
-            .addOnFailureListener { e ->
-                Log.e("TodoFragment", "Gagal menghapus todo: ${e.message}")
-                showToast("Gagal menghapus todo: ${e.message}")
-            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun showToast(message: String) {
@@ -319,21 +379,30 @@ class TodoFragment : Fragment() {
         prioritySpinner.adapter = spinnerAdapter
 
         val reminderOptions = listOf("5 menit", "10 menit", "30 menit", "1 jam", "5 jam")
-        val reminderAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, reminderOptions)
+        val reminderAdapter =
+            ArrayAdapter(context, android.R.layout.simple_spinner_item, reminderOptions)
         reminderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         reminderSpinner.adapter = reminderAdapter
 
         btnDeadline.setOnClickListener {
             showDateTimePicker { deadline ->
                 selectedDeadline = deadline
-                btnDeadline.text = "Deadline: ${DateFormat.format("dd-MM-yyyy HH:mm", Calendar.getInstance().apply { timeInMillis = selectedDeadline })}"
+                btnDeadline.text = "Deadline: ${
+                    DateFormat.format(
+                        "dd-MM-yyyy HH:mm",
+                        Calendar.getInstance().apply { timeInMillis = selectedDeadline })
+                }"
             }
         }
 
         addSubtaskButton.setOnClickListener {
             val subtaskText = subtasksInput.text.toString().trim()
             if (subtaskText.isNotEmpty()) {
-                val newSubtask = Subtask(id = UUID.randomUUID().toString(), text = subtaskText, completed = false)
+                val newSubtask = Subtask(
+                    id = UUID.randomUUID().toString(),
+                    text = subtaskText,
+                    completed = false
+                )
                 subtaskList.add(newSubtask)
                 subtaskAdapter.notifyItemInserted(subtaskList.size - 1)
                 subtasksInput.text.clear()
@@ -357,46 +426,66 @@ class TodoFragment : Fragment() {
             }
 
             if (title.isNotEmpty() && subtaskList.isNotEmpty() && selectedDeadline != 0L) {
-                val currentUser = auth.currentUser
-                if (currentUser == null) {
-                    showToast("Anda harus login terlebih dahulu!")
-                    bottomSheetDialog.dismiss()
-                    navigateToLogin()
-                    return@setOnClickListener
-                }
-
-                val userId = currentUser.uid
-                val todoRef = db.collection("todos").document()
-                val newTodo = Todo(
-                    id = todoRef.id,
-                    title = title,
-                    subtasks = mutableListOf(),
-                    priorityLevel = priority,
-                    userId = userId,
-                    deadline = selectedDeadline,
-                    reminderTime = reminderTimeInMillis
-                )
-
-                todoRef.set(newTodo.copy(subtasks = mutableListOf()))
-                    .addOnSuccessListener {
-                        subtaskList.forEach { subtask ->
-                            val subtaskRef = todoRef.collection("subtasks").document()
-                            subtaskRef.set(subtask.copy(id = subtaskRef.id))
-                                .addOnSuccessListener { Log.d("TodoFragment", "Subtask ${subtask.text} disimpan") }
-                                .addOnFailureListener { e -> Log.e("TodoFragment", "Gagal menyimpan subtask: ${e.message}") }
+                AlertDialog.Builder(context)
+                    .setTitle("Konfirmasi")
+                    .setMessage("Apakah Anda yakin ingin menyimpan tugas ini?")
+                    .setPositiveButton("Ya") { _, _ ->
+                        val currentUser = auth.currentUser
+                        if (currentUser == null) {
+                            showToast("Anda harus login terlebih dahulu!")
+                            bottomSheetDialog.dismiss()
+                            navigateToLogin()
+                            return@setPositiveButton
                         }
-                        if (selectedDeadline - reminderTimeInMillis > System.currentTimeMillis()) {
-                            setReminderAlarm(newTodo, selectedDeadline - reminderTimeInMillis)
-                        }
-                        fetchTodos(userId)
-                        showToast("Tugas berhasil ditambahkan!")
-                        bottomSheetDialog.dismiss()
+
+                        val userId = currentUser.uid
+                        val todoRef = db.collection("todos").document()
+                        val newTodo = Todo(
+                            id = todoRef.id,
+                            title = title,
+                            subtasks = mutableListOf(),
+                            priorityLevel = priority,
+                            userId = userId,
+                            deadline = selectedDeadline,
+                            reminderTime = reminderTimeInMillis
+                        )
+
+                        todoRef.set(newTodo.copy(subtasks = mutableListOf()))
+                            .addOnSuccessListener {
+                                subtaskList.forEach { subtask ->
+                                    val subtaskRef = todoRef.collection("subtasks").document()
+                                    subtaskRef.set(subtask.copy(id = subtaskRef.id))
+                                        .addOnSuccessListener {
+                                            Log.d(
+                                                "TodoFragment",
+                                                "Subtask ${subtask.text} disimpan"
+                                            )
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Log.e(
+                                                "TodoFragment",
+                                                "Gagal menyimpan subtask: ${e.message}"
+                                            )
+                                        }
+                                }
+                                if (selectedDeadline - reminderTimeInMillis > System.currentTimeMillis()) {
+                                    setReminderAlarm(
+                                        newTodo,
+                                        selectedDeadline - reminderTimeInMillis
+                                    )
+                                }
+                                fetchTodos(userId)
+                                showToast("Tugas berhasil ditambahkan!")
+                                bottomSheetDialog.dismiss()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Firestore", "Gagal menyimpan todo: ${e.message}")
+                                showToast("Gagal menyimpan todo: ${e.message}")
+                                bottomSheetDialog.dismiss()
+                            }
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("Firestore", "Gagal menyimpan todo: ${e.message}")
-                        showToast("Gagal menyimpan todo: ${e.message}")
-                        bottomSheetDialog.dismiss()
-                    }
+                    .setNegativeButton("Tidak", null)
+                    .show()
             } else {
                 showToast("Harap isi semua bidang tuan muda")
             }
@@ -404,6 +493,8 @@ class TodoFragment : Fragment() {
 
         bottomSheetDialog.show()
     }
+
+
 
     private fun showDateTimePicker(onDateTimeSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()
@@ -552,35 +643,43 @@ class TodoFragment : Fragment() {
             }
 
             if (title.isNotEmpty() && subtaskList.isNotEmpty() && selectedDeadline != 0L) {
-                // Simpan subtask yang tersisa ke Firestore
-                val todoRef = db.collection("todos").document(todo.id)
-                todoRef.collection("subtasks").get().addOnSuccessListener { snapshot ->
-                    snapshot.documents.forEach { it.reference.delete() } // Hapus semua subtask lama
-                    subtaskList.forEach { subtask ->
-                        val subtaskRef = todoRef.collection("subtasks").document(subtask.id)
-                        subtaskRef.set(subtask)
-                            .addOnSuccessListener { Log.d("TodoFragment", "Subtask ${subtask.text} disimpan") }
-                            .addOnFailureListener { e -> Log.e("TodoFragment", "Gagal menyimpan subtask: ${e.message}") }
-                    }
-                }
+                // Tampilkan alert konfirmasi
+                AlertDialog.Builder(context)
+                    .setTitle("Konfirmasi")
+                    .setMessage("Yakin ingin menyimpan perubahan tugas ini?")
+                    .setPositiveButton("Ya") { _, _ ->
+                        // Simpan subtask yang tersisa ke Firestore
+                        val todoRef = db.collection("todos").document(todo.id)
+                        todoRef.collection("subtasks").get().addOnSuccessListener { snapshot ->
+                            snapshot.documents.forEach { it.reference.delete() }
+                            subtaskList.forEach { subtask ->
+                                val subtaskRef = todoRef.collection("subtasks").document(subtask.id)
+                                subtaskRef.set(subtask)
+                                    .addOnSuccessListener { Log.d("TodoFragment", "Subtask ${subtask.text} disimpan") }
+                                    .addOnFailureListener { e -> Log.e("TodoFragment", "Gagal menyimpan subtask: ${e.message}") }
+                            }
+                        }
 
-                val updatedTodo = todo.copy(
-                    title = title,
-                    subtasks = subtaskList,
-                    priorityLevel = priority,
-                    deadline = selectedDeadline,
-                    reminderTime = reminderTimeInMillis
-                )
-                todoRef.set(updatedTodo)
-                    .addOnSuccessListener {
-                        fetchTodos(auth.currentUser?.uid)
-                        showToast("Tugas berhasil diperbarui!")
-                        bottomSheetDialog.dismiss()
+                        val updatedTodo = todo.copy(
+                            title = title,
+                            subtasks = subtaskList,
+                            priorityLevel = priority,
+                            deadline = selectedDeadline,
+                            reminderTime = reminderTimeInMillis
+                        )
+                        todoRef.set(updatedTodo)
+                            .addOnSuccessListener {
+                                fetchTodos(auth.currentUser?.uid)
+                                showToast("Tugas berhasil diperbarui!")
+                                bottomSheetDialog.dismiss()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Firestore", "Gagal memperbarui todo: ${e.message}")
+                                showToast("Gagal memperbarui todo: ${e.message}")
+                            }
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("Firestore", "Gagal memperbarui todo: ${e.message}")
-                        showToast("Gagal memperbarui todo: ${e.message}")
-                    }
+                    .setNegativeButton("Batal", null)
+                    .show()
             } else {
                 showToast("Harap isi semua bidang dan atur deadline!")
             }
